@@ -139,7 +139,7 @@
 }
 
 .amenity-tag.more {
-  background-color: var(--accent-green);
+  background-color: var(--gray-300);
   color: var(--gray-700);
 }
 
