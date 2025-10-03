@@ -329,7 +329,7 @@ const styles = {
     padding: '12px 24px',
     backgroundColor: '#FEF3C7',
     borderRadius: '12px',
-    border: '2px solid #F59E0B'
+    border: '1px solid #F59E0B'
   },
   
   timerText: {

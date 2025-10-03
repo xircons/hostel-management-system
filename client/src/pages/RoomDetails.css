@@ -17,8 +17,8 @@
 .spinner {
   width: 40px;
   height: 40px;
-  border: 2px solid var(--gray-200);
-  border-top: 2px solid var(--primary-dark);
+  border: 1px solid var(--gray-200);
+  border-top: 1px solid var(--primary-dark);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: var(--space-4);
@@ -932,7 +932,7 @@
 
 .btn-outline {
   background-color: transparent;
-  border: 2px solid var(--primary-dark);
+  border: 1px solid var(--primary-dark);
   color: var(--primary-dark);
   transition: all var(--transition-fast);
 }

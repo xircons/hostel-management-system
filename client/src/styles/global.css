@@ -140,7 +140,7 @@ a:hover {
   font-family: var(--font-primary);
   font-size: var(--text-base);
   font-weight: var(--font-light);
-  border: 2px solid var(--gray-200);
+  border: 1px solid var(--gray-200);
   border-radius: var(--radius-md);
   background-color: var(--white);
   transition: border-color var(--transition-fast);
@@ -346,8 +346,8 @@ input[type="checkbox"] {
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--gray-200);
-  border-top: 2px solid var(--primary-dark);
+  border: 1px solid var(--gray-200);
+  border-top: 1px solid var(--primary-dark);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

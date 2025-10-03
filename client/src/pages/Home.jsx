@@ -1,45 +1,49 @@
 
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import RoomCard from '../components/RoomCard';
+import Testimonials from '../components/Testimonials';
+import apiService from '../services/api';
 import './Home.css';
 
 const Home = () => {
-  // Sample room data
-  const featuredRooms = [
-    {
-      id: 1,
-      name: "Standard King Bed Room",
-      type: "Private",
-      price: 531,
-      capacity: 2,
-      amenities: ["เครื่องปรับอากาศ", "ปลั๊กใกล้เตียง", "พื้นกระเบื้อง/หินอ่อน", "โต๊ะทำงาน", "มุ้ง", "พัดลม", "เครื่องอบผ้า", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "ราวแขวนเสื้อผ้า"],
-      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o=",
-      description: "Comfortable private room with king-size bed, air conditioning, and shared bathroom facilities. Located on upper floor with stair access only.",
-      available: true
-    },
-    {
-      id: 2,
-      name: "Female Dormitory 4-Bed",
-      type: "Dormitory",
-      price: 216,
-      capacity: 4,
-      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
-      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276533.jpg?k=652f3d9b297cabc399e4e20bbf879430eb3d294fc5c544ff8bdf0090cbbf2798&o=",
-      description: "Comfortable female-only dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
-      available: true
-    },
-    {
-      id: 3,
-      name: "Mixed Dormitory 4-Bed",
-      type: "Dormitory",
-      price: 216,
-      capacity: 4,
-      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
-      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276494.jpg?k=fa258523250cc272021978eca8489404a422b425991d2aee3e3cd5bcd2fb71ac&o=",
-      description: "Comfortable mixed dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
-      available: true
-    }
-  ];
+  const [featuredRooms, setFeaturedRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch rooms from database
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        setLoading(true);
+        const response = await apiService.getRooms();
+        if (response.success) {
+          // Transform database data to match component expectations
+          const rooms = response.data.map(room => ({
+            id: room.id,
+            name: room.name,
+            type: room.room_type,
+            price: room.base_price,
+            capacity: room.capacity,
+            amenities: room.amenities_th || room.amenities, // Use Thai amenities if available
+            image: room.main_image_url,
+            description: room.description,
+            available: room.is_available
+          }));
+          setFeaturedRooms(rooms);
+        } else {
+          setError('Failed to load rooms');
+        }
+      } catch (err) {
+        console.error('Error fetching rooms:', err);
+        setError('Failed to connect to server');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRooms();
+  }, []);
 
   const features = [
     { icon: 'home', title: 'Cozy Accommodation', description: "Comfortable beds and clean rooms designed for a good night's sleep" },
@@ -102,27 +106,6 @@ const Home = () => {
     }
   };
 
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      location: "New York, USA",
-      text: "Amazing stay! The staff was incredibly friendly and the location was perfect for exploring the city.",
-      rating: 5
-    },
-    {
-      name: "Marco Silva",
-      location: "São Paulo, Brazil",
-      text: "Clean, comfortable, and affordable. Exactly what I needed for my backpacking trip.",
-      rating: 5
-    },
-    {
-      name: "Emma Chen",
-      location: "Melbourne, Australia",
-      text: "Great atmosphere and wonderful people. Made lifelong friends during my stay here.",
-      rating: 5
-    }
-  ];
-
   return (
     <div className="home">
       {/* Full-viewport Hero Image */}
@@ -160,9 +143,20 @@ const Home = () => {
             Choose from our variety of comfortable accommodations
           </p> */}
           <div className="rooms-grid">
-            {featuredRooms.map((room) => (
-              <RoomCard key={room.id} room={room} />
-            ))}
+            {loading ? (
+              <div className="loading-state">
+                <div className="loading-spinner"></div>
+                <p>Loading rooms...</p>
+              </div>
+            ) : error ? (
+              <div className="error-state">
+                <p>❌ {error} | Status: Backend API not responding</p>
+              </div>
+            ) : (
+              featuredRooms.map((room) => (
+                <RoomCard key={room.id} room={room} />
+              ))
+            )}
           </div>
           <div className="section-actions">
             <Link to="/rooms" className="btn btn-primary btn-lg">
@@ -173,32 +167,7 @@ const Home = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="testimonials">
-        <div className="container">
-          <h2 className="section-title">What Our Guests Say</h2>
-          {/* <p className="section-subtitle">
-            Real experiences from travelers who stayed with us
-          </p> */}
-          <div className="testimonials-grid">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="testimonial-card">
-                <div className="testimonial-rating">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <svg key={i} className="star" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#fbbf24" strokeWidth="1.5" fill="#fbbf24"/>
-                    </svg>
-                  ))}
-                </div>
-                <p className="testimonial-text">"{testimonial.text}"</p>
-                <div className="testimonial-author">
-                  <h4 className="author-name">{testimonial.name}</h4>
-                  <p className="author-location">{testimonial.location}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Testimonials />
 
     </div>
   );

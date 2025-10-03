@@ -136,19 +136,19 @@
 
 .notification-item.unread {
   background: var(--primary-dark-light);
-  border-left: 3px solid var(--primary-dark);
+  border-left: 1px solid var(--primary-dark);
 }
 
 .notification-item.priority-urgent {
-  border-left: 3px solid #ef4444;
+  border-left: 1px solid #ef4444;
 }
 
 .notification-item.priority-warning {
-  border-left: 3px solid #f59e0b;
+  border-left: 1px solid #f59e0b;
 }
 
 .notification-item.priority-info {
-  border-left: 3px solid #3b82f6;
+  border-left: 1px solid #3b82f6;
 }
 
 .notification-icon {

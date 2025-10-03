@@ -1,0 +1,19 @@
+{
+  "name": "hostel-management-system",
+  "version": "1.0.0",
+  "description": "Complete hostel management system with React frontend and Node.js backend",
+  "scripts": {
+    "dev": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "start:backend": "cd backend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "install:all": "npm install && cd client && npm install && cd ../backend && npm install",
+    "start": "concurrently \"npm run start:backend\" \"npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["hostel", "management", "react", "nodejs", "mysql"],
+  "author": "Your Name",
+  "license": "MIT"
+}

@@ -7,7 +7,7 @@
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: all var(--transition-normal);
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   margin-bottom: var(--space-6);
 }
 
@@ -213,7 +213,7 @@
 .room-row-actions .btn-secondary {
   background: var(--white);
   color: var(--primary-dark);
-  border: 2px solid var(--primary-dark);
+  border: 1px solid var(--primary-dark);
 }
 
 .room-row-actions .btn-secondary:hover {

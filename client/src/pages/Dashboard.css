@@ -176,7 +176,7 @@
 .nav-item.active {
   background-color: var(--primary-dark-light);
   color: var(--primary-dark);
-  border-right: 3px solid var(--primary-dark);
+  border-right: 1px solid var(--primary-dark);
 }
 
 .nav-item.active::before {

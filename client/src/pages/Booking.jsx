@@ -4,11 +4,15 @@ import QRCode from 'qrcode';
 import { PaymentProvider } from '../contexts/PaymentContext';
 import QRPaymentStep from '../components/QRPaymentStep';
 import RoomRow from '../components/RoomRow';
+import apiService from '../services/api';
 import './Booking.css';
 
 const Booking = () => {
   const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [bookingData, setBookingData] = useState({
     // Step 1: Room & Dates
     roomId: searchParams.get('room') || '',
@@ -31,53 +35,414 @@ const Booking = () => {
     specialRequests: ''
   });
 
+  // Searchable nationality dropdown state
+  const [nationalitySearch, setNationalitySearch] = useState('');
+  const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const nationalityDropdownRef = useRef(null);
+  const nationalityInputRef = useRef(null);
 
-  const rooms = [
-    { 
-      id: 1, 
-      name: "Standard King Bed Room", 
-      price: 531, 
-      type: "Private",
-      size: "15m²",
-      capacity: 2,
-      amenities: ["เครื่องปรับอากาศ", "ปลั๊กใกล้เตียง", "พื้นกระเบื้อง/หินอ่อน", "โต๊ะทำงาน", "มุ้ง", "พัดลม", "เครื่องอบผ้า", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "ราวแขวนเสื้อผ้า"],
-      description: "Comfortable private room with king-size bed, air conditioning, and shared bathroom facilities. Located on upper floor with stair access only.",
-      available: true,
-      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o="
-    },
-    { 
-      id: 2, 
-      name: "Female Dormitory 4-Bed", 
-      price: 216, 
-      type: "Dormitory",
-      size: "15m²",
-      capacity: 4,
-      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
-      description: "Comfortable female-only dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
-      available: true,
-      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276533.jpg?k=652f3d9b297cabc399e4e20bbf879430eb3d294fc5c544ff8bdf0090cbbf2798&o="
-    },
-    { 
-      id: 3, 
-      name: "Mixed Dormitory 4-Bed", 
-      price: 216, 
-      type: "Dormitory",
-      size: "15m²",
-      capacity: 4,
-      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
-      description: "Comfortable mixed dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
-      available: true,
-      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276494.jpg?k=fa258523250cc272021978eca8489404a422b425991d2aee3e3cd5bcd2fb71ac&o="
-    }
+  // Phone country code dropdown state
+  const [phoneCountryCode, setPhoneCountryCode] = useState('+66');
+  const [phoneCountryCodeSearch, setPhoneCountryCodeSearch] = useState('');
+  const [showPhoneCodeDropdown, setShowPhoneCodeDropdown] = useState(false);
+  const [phoneCodeDropdownPosition, setPhoneCodeDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const phoneCodeDropdownRef = useRef(null);
+  const phoneCodeInputRef = useRef(null);
+
+  // Fetch rooms from database
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        setLoading(true);
+        const response = await apiService.getRooms();
+        if (response.success) {
+          // Transform database data to match component expectations
+          const roomsData = response.data.map(room => ({
+            id: room.id,
+            name: room.name,
+            price: room.base_price,
+            type: room.room_type,
+            size: `${room.size_sqm}m²`,
+            capacity: room.capacity,
+            amenities: room.amenities_th || room.amenities, // Use Thai amenities if available
+            description: room.description,
+            available: room.is_available,
+            image: room.main_image_url
+          }));
+          setRooms(roomsData);
+        } else {
+          setError('Failed to load rooms');
+        }
+      } catch (err) {
+        console.error('Error fetching rooms:', err);
+        setError('Failed to connect to server');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRooms();
+  }, []);
+
+  const nationalities = [
+    'Afghan', 'Albanian', 'Algerian', 'American', 'Andorran', 'Angolan', 'Antiguan', 'Argentine', 'Armenian', 'Australian',
+    'Austrian', 'Azerbaijani', 'Bahamian', 'Bahraini', 'Bangladeshi', 'Barbadian', 'Belarusian', 'Belgian', 'Belizean', 'Beninese',
+    'Bhutanese', 'Bolivian', 'Bosnian', 'Botswanan', 'Brazilian', 'British', 'Bruneian', 'Bulgarian', 'Burkinabé', 'Burundian',
+    'Cambodian', 'Cameroonian', 'Canadian', 'Cape Verdean', 'Central African', 'Chadian', 'Chilean', 'Chinese', 'Colombian', 'Comoran',
+    'Congolese', 'Costa Rican', 'Croatian', 'Cuban', 'Cypriot', 'Czech', 'Danish', 'Djiboutian', 'Dominican', 'Dutch',
+    'East Timorese', 'Ecuadorean', 'Egyptian', 'Emirati', 'English', 'Equatorial Guinean', 'Eritrean', 'Estonian', 'Ethiopian', 'Fijian',
+    'Filipino', 'Finnish', 'French', 'Gabonese', 'Gambian', 'Georgian', 'German', 'Ghanaian', 'Greek', 'Grenadian',
+    'Guatemalan', 'Guinean', 'Guyanese', 'Haitian', 'Honduran', 'Hungarian', 'Icelandic', 'Indian', 'Indonesian', 'Iranian',
+    'Iraqi', 'Irish', 'Israeli', 'Italian', 'Ivorian', 'Jamaican', 'Japanese', 'Jordanian', 'Kazakhstani', 'Kenyan',
+    'Kittian and Nevisian', 'Kuwaiti', 'Kyrgyz', 'Laotian', 'Latvian', 'Lebanese', 'Liberian', 'Libyan', 'Liechtensteiner', 'Lithuanian',
+    'Luxembourger', 'Macedonian', 'Malagasy', 'Malawian', 'Malaysian', 'Maldivan', 'Malian', 'Maltese', 'Marshallese', 'Mauritanian',
+    'Mauritian', 'Mexican', 'Micronesian', 'Moldovan', 'Monacan', 'Mongolian', 'Montenegrin', 'Moroccan', 'Mosotho', 'Motswana',
+    'Mozambican', 'Namibian', 'Nauruan', 'Nepalese', 'New Zealander', 'Nicaraguan', 'Nigerian', 'Nigerien', 'North Korean', 'Northern Irish',
+    'Norwegian', 'Omani', 'Pakistani', 'Palauan', 'Panamanian', 'Papua New Guinean', 'Paraguayan', 'Peruvian', 'Polish', 'Portuguese',
+    'Qatari', 'Romanian', 'Russian', 'Rwandan', 'Saint Lucian', 'Salvadoran', 'Samoan', 'San Marinese', 'São Toméan', 'Saudi Arabian',
+    'Scottish', 'Senegalese', 'Serbian', 'Seychellois', 'Sierra Leonean', 'Singaporean', 'Slovakian', 'Slovenian', 'Solomon Islander', 'Somali',
+    'South African', 'South Korean', 'South Sudanese', 'Spanish', 'Sri Lankan', 'Sudanese', 'Surinamer', 'Swazi', 'Swedish', 'Swiss',
+    'Syrian', 'Taiwanese', 'Tajikistani', 'Tanzanian', 'Thai', 'Togolese', 'Tongan', 'Trinidadian or Tobagonian', 'Tunisian', 'Turkish',
+    'Tuvaluan', 'Ugandan', 'Ukrainian', 'Uruguayan', 'Uzbekistani', 'Venezuelan', 'Vietnamese', 'Welsh', 'Yemenite', 'Zambian', 'Zimbabwean'
+  ];
+
+  const countryCodes = [
+    { code: '+1', country: 'United States', flag: '🇺🇸' },
+    { code: '+1', country: 'Canada', flag: '🇨🇦' },
+    { code: '+7', country: 'Russia', flag: '🇷🇺' },
+    { code: '+7', country: 'Kazakhstan', flag: '🇰🇿' },
+    { code: '+20', country: 'Egypt', flag: '🇪🇬' },
+    { code: '+27', country: 'South Africa', flag: '🇿🇦' },
+    { code: '+30', country: 'Greece', flag: '🇬🇷' },
+    { code: '+31', country: 'Netherlands', flag: '🇳🇱' },
+    { code: '+32', country: 'Belgium', flag: '🇧🇪' },
+    { code: '+33', country: 'France', flag: '🇫🇷' },
+    { code: '+34', country: 'Spain', flag: '🇪🇸' },
+    { code: '+36', country: 'Hungary', flag: '🇭🇺' },
+    { code: '+39', country: 'Italy', flag: '🇮🇹' },
+    { code: '+40', country: 'Romania', flag: '🇷🇴' },
+    { code: '+41', country: 'Switzerland', flag: '🇨🇭' },
+    { code: '+43', country: 'Austria', flag: '🇦🇹' },
+    { code: '+44', country: 'United Kingdom', flag: '🇬🇧' },
+    { code: '+45', country: 'Denmark', flag: '🇩🇰' },
+    { code: '+46', country: 'Sweden', flag: '🇸🇪' },
+    { code: '+47', country: 'Norway', flag: '🇳🇴' },
+    { code: '+48', country: 'Poland', flag: '🇵🇱' },
+    { code: '+49', country: 'Germany', flag: '🇩🇪' },
+    { code: '+51', country: 'Peru', flag: '🇵🇪' },
+    { code: '+52', country: 'Mexico', flag: '🇲🇽' },
+    { code: '+53', country: 'Cuba', flag: '🇨🇺' },
+    { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+    { code: '+55', country: 'Brazil', flag: '🇧🇷' },
+    { code: '+56', country: 'Chile', flag: '🇨🇱' },
+    { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+    { code: '+58', country: 'Venezuela', flag: '🇻🇪' },
+    { code: '+60', country: 'Malaysia', flag: '🇲🇾' },
+    { code: '+61', country: 'Australia', flag: '🇦🇺' },
+    { code: '+62', country: 'Indonesia', flag: '🇮🇩' },
+    { code: '+63', country: 'Philippines', flag: '🇵🇭' },
+    { code: '+64', country: 'New Zealand', flag: '🇳🇿' },
+    { code: '+65', country: 'Singapore', flag: '🇸🇬' },
+    { code: '+66', country: 'Thailand', flag: '🇹🇭' },
+    { code: '+81', country: 'Japan', flag: '🇯🇵' },
+    { code: '+82', country: 'South Korea', flag: '🇰🇷' },
+    { code: '+84', country: 'Vietnam', flag: '🇻🇳' },
+    { code: '+86', country: 'China', flag: '🇨🇳' },
+    { code: '+90', country: 'Turkey', flag: '🇹🇷' },
+    { code: '+91', country: 'India', flag: '🇮🇳' },
+    { code: '+92', country: 'Pakistan', flag: '🇵🇰' },
+    { code: '+93', country: 'Afghanistan', flag: '🇦🇫' },
+    { code: '+94', country: 'Sri Lanka', flag: '🇱🇰' },
+    { code: '+95', country: 'Myanmar', flag: '🇲🇲' },
+    { code: '+98', country: 'Iran', flag: '🇮🇷' },
+    { code: '+212', country: 'Morocco', flag: '🇲🇦' },
+    { code: '+213', country: 'Algeria', flag: '🇩🇿' },
+    { code: '+216', country: 'Tunisia', flag: '🇹🇳' },
+    { code: '+218', country: 'Libya', flag: '🇱🇾' },
+    { code: '+220', country: 'Gambia', flag: '🇬🇲' },
+    { code: '+221', country: 'Senegal', flag: '🇸🇳' },
+    { code: '+222', country: 'Mauritania', flag: '🇲🇷' },
+    { code: '+223', country: 'Mali', flag: '🇲🇱' },
+    { code: '+224', country: 'Guinea', flag: '🇬🇳' },
+    { code: '+225', country: 'Ivory Coast', flag: '🇨🇮' },
+    { code: '+226', country: 'Burkina Faso', flag: '🇧🇫' },
+    { code: '+227', country: 'Niger', flag: '🇳🇪' },
+    { code: '+228', country: 'Togo', flag: '🇹🇬' },
+    { code: '+229', country: 'Benin', flag: '🇧🇯' },
+    { code: '+230', country: 'Mauritius', flag: '🇲🇺' },
+    { code: '+231', country: 'Liberia', flag: '🇱🇷' },
+    { code: '+232', country: 'Sierra Leone', flag: '🇸🇱' },
+    { code: '+233', country: 'Ghana', flag: '🇬🇭' },
+    { code: '+234', country: 'Nigeria', flag: '🇳🇬' },
+    { code: '+235', country: 'Chad', flag: '🇹🇩' },
+    { code: '+236', country: 'Central African Republic', flag: '🇨🇫' },
+    { code: '+237', country: 'Cameroon', flag: '🇨🇲' },
+    { code: '+238', country: 'Cape Verde', flag: '🇨🇻' },
+    { code: '+239', country: 'São Tomé and Príncipe', flag: '🇸🇹' },
+    { code: '+240', country: 'Equatorial Guinea', flag: '🇬🇶' },
+    { code: '+241', country: 'Gabon', flag: '🇬🇦' },
+    { code: '+242', country: 'Republic of the Congo', flag: '🇨🇬' },
+    { code: '+243', country: 'Democratic Republic of the Congo', flag: '🇨🇩' },
+    { code: '+244', country: 'Angola', flag: '🇦🇴' },
+    { code: '+245', country: 'Guinea-Bissau', flag: '🇬🇼' },
+    { code: '+246', country: 'British Indian Ocean Territory', flag: '🇮🇴' },
+    { code: '+248', country: 'Seychelles', flag: '🇸🇨' },
+    { code: '+249', country: 'Sudan', flag: '🇸🇩' },
+    { code: '+250', country: 'Rwanda', flag: '🇷🇼' },
+    { code: '+251', country: 'Ethiopia', flag: '🇪🇹' },
+    { code: '+252', country: 'Somalia', flag: '🇸🇴' },
+    { code: '+253', country: 'Djibouti', flag: '🇩🇯' },
+    { code: '+254', country: 'Kenya', flag: '🇰🇪' },
+    { code: '+255', country: 'Tanzania', flag: '🇹🇿' },
+    { code: '+256', country: 'Uganda', flag: '🇺🇬' },
+    { code: '+257', country: 'Burundi', flag: '🇧🇮' },
+    { code: '+258', country: 'Mozambique', flag: '🇲🇿' },
+    { code: '+260', country: 'Zambia', flag: '🇿🇲' },
+    { code: '+261', country: 'Madagascar', flag: '🇲🇬' },
+    { code: '+262', country: 'Réunion', flag: '🇷🇪' },
+    { code: '+263', country: 'Zimbabwe', flag: '🇿🇼' },
+    { code: '+264', country: 'Namibia', flag: '🇳🇦' },
+    { code: '+265', country: 'Malawi', flag: '🇲🇼' },
+    { code: '+266', country: 'Lesotho', flag: '🇱🇸' },
+    { code: '+267', country: 'Botswana', flag: '🇧🇼' },
+    { code: '+268', country: 'Swaziland', flag: '🇸🇿' },
+    { code: '+269', country: 'Comoros', flag: '🇰🇲' },
+    { code: '+290', country: 'Saint Helena', flag: '🇸🇭' },
+    { code: '+291', country: 'Eritrea', flag: '🇪🇷' },
+    { code: '+297', country: 'Aruba', flag: '🇦🇼' },
+    { code: '+298', country: 'Faroe Islands', flag: '🇫🇴' },
+    { code: '+299', country: 'Greenland', flag: '🇬🇱' },
+    { code: '+350', country: 'Gibraltar', flag: '🇬🇮' },
+    { code: '+351', country: 'Portugal', flag: '🇵🇹' },
+    { code: '+352', country: 'Luxembourg', flag: '🇱🇺' },
+    { code: '+353', country: 'Ireland', flag: '🇮🇪' },
+    { code: '+354', country: 'Iceland', flag: '🇮🇸' },
+    { code: '+355', country: 'Albania', flag: '🇦🇱' },
+    { code: '+356', country: 'Malta', flag: '🇲🇹' },
+    { code: '+357', country: 'Cyprus', flag: '🇨🇾' },
+    { code: '+358', country: 'Finland', flag: '🇫🇮' },
+    { code: '+359', country: 'Bulgaria', flag: '🇧🇬' },
+    { code: '+370', country: 'Lithuania', flag: '🇱🇹' },
+    { code: '+371', country: 'Latvia', flag: '🇱🇻' },
+    { code: '+372', country: 'Estonia', flag: '🇪🇪' },
+    { code: '+373', country: 'Moldova', flag: '🇲🇩' },
+    { code: '+374', country: 'Armenia', flag: '🇦🇲' },
+    { code: '+375', country: 'Belarus', flag: '🇧🇾' },
+    { code: '+376', country: 'Andorra', flag: '🇦🇩' },
+    { code: '+377', country: 'Monaco', flag: '🇲🇨' },
+    { code: '+378', country: 'San Marino', flag: '🇸🇲' },
+    { code: '+380', country: 'Ukraine', flag: '🇺🇦' },
+    { code: '+381', country: 'Serbia', flag: '🇷🇸' },
+    { code: '+382', country: 'Montenegro', flag: '🇲🇪' },
+    { code: '+383', country: 'Kosovo', flag: '🇽🇰' },
+    { code: '+385', country: 'Croatia', flag: '🇭🇷' },
+    { code: '+386', country: 'Slovenia', flag: '🇸🇮' },
+    { code: '+387', country: 'Bosnia and Herzegovina', flag: '🇧🇦' },
+    { code: '+389', country: 'North Macedonia', flag: '🇲🇰' },
+    { code: '+420', country: 'Czech Republic', flag: '🇨🇿' },
+    { code: '+421', country: 'Slovakia', flag: '🇸🇰' },
+    { code: '+423', country: 'Liechtenstein', flag: '🇱🇮' },
+    { code: '+500', country: 'Falkland Islands', flag: '🇫🇰' },
+    { code: '+501', country: 'Belize', flag: '🇧🇿' },
+    { code: '+502', country: 'Guatemala', flag: '🇬🇹' },
+    { code: '+503', country: 'El Salvador', flag: '🇸🇻' },
+    { code: '+504', country: 'Honduras', flag: '🇭🇳' },
+    { code: '+505', country: 'Nicaragua', flag: '🇳🇮' },
+    { code: '+506', country: 'Costa Rica', flag: '🇨🇷' },
+    { code: '+507', country: 'Panama', flag: '🇵🇦' },
+    { code: '+508', country: 'Saint Pierre and Miquelon', flag: '🇵🇲' },
+    { code: '+509', country: 'Haiti', flag: '🇭🇹' },
+    { code: '+590', country: 'Guadeloupe', flag: '🇬🇵' },
+    { code: '+591', country: 'Bolivia', flag: '🇧🇴' },
+    { code: '+592', country: 'Guyana', flag: '🇬🇾' },
+    { code: '+593', country: 'Ecuador', flag: '🇪🇨' },
+    { code: '+594', country: 'French Guiana', flag: '🇬🇫' },
+    { code: '+595', country: 'Paraguay', flag: '🇵🇾' },
+    { code: '+596', country: 'Martinique', flag: '🇲🇶' },
+    { code: '+597', country: 'Suriname', flag: '🇸🇷' },
+    { code: '+598', country: 'Uruguay', flag: '🇺🇾' },
+    { code: '+599', country: 'Netherlands Antilles', flag: '🇧🇶' },
+    { code: '+670', country: 'East Timor', flag: '🇹🇱' },
+    { code: '+672', country: 'Antarctica', flag: '🇦🇶' },
+    { code: '+673', country: 'Brunei', flag: '🇧🇳' },
+    { code: '+674', country: 'Nauru', flag: '🇳🇷' },
+    { code: '+675', country: 'Papua New Guinea', flag: '🇵🇬' },
+    { code: '+676', country: 'Tonga', flag: '🇹🇴' },
+    { code: '+677', country: 'Solomon Islands', flag: '🇸🇧' },
+    { code: '+678', country: 'Vanuatu', flag: '🇻🇺' },
+    { code: '+679', country: 'Fiji', flag: '🇫🇯' },
+    { code: '+680', country: 'Palau', flag: '🇵🇼' },
+    { code: '+681', country: 'Wallis and Futuna', flag: '🇼🇫' },
+    { code: '+682', country: 'Cook Islands', flag: '🇨🇰' },
+    { code: '+683', country: 'Niue', flag: '🇳🇺' },
+    { code: '+684', country: 'American Samoa', flag: '🇦🇸' },
+    { code: '+685', country: 'Samoa', flag: '🇼🇸' },
+    { code: '+686', country: 'Kiribati', flag: '🇰🇮' },
+    { code: '+687', country: 'New Caledonia', flag: '🇳🇨' },
+    { code: '+688', country: 'Tuvalu', flag: '🇹🇻' },
+    { code: '+689', country: 'French Polynesia', flag: '🇵🇫' },
+    { code: '+690', country: 'Tokelau', flag: '🇹🇰' },
+    { code: '+691', country: 'Micronesia', flag: '🇫🇲' },
+    { code: '+692', country: 'Marshall Islands', flag: '🇲🇭' },
+    { code: '+850', country: 'North Korea', flag: '🇰🇵' },
+    { code: '+852', country: 'Hong Kong', flag: '🇭🇰' },
+    { code: '+853', country: 'Macau', flag: '🇲🇴' },
+    { code: '+855', country: 'Cambodia', flag: '🇰🇭' },
+    { code: '+856', country: 'Laos', flag: '🇱🇦' },
+    { code: '+880', country: 'Bangladesh', flag: '🇧🇩' },
+    { code: '+886', country: 'Taiwan', flag: '🇹🇼' },
+    { code: '+960', country: 'Maldives', flag: '🇲🇻' },
+    { code: '+961', country: 'Lebanon', flag: '🇱🇧' },
+    { code: '+962', country: 'Jordan', flag: '🇯🇴' },
+    { code: '+963', country: 'Syria', flag: '🇸🇾' },
+    { code: '+964', country: 'Iraq', flag: '🇮🇶' },
+    { code: '+965', country: 'Kuwait', flag: '🇰🇼' },
+    { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
+    { code: '+967', country: 'Yemen', flag: '🇾🇪' },
+    { code: '+968', country: 'Oman', flag: '🇴🇲' },
+    { code: '+970', country: 'Palestine', flag: '🇵🇸' },
+    { code: '+971', country: 'United Arab Emirates', flag: '🇦🇪' },
+    { code: '+972', country: 'Israel', flag: '🇮🇱' },
+    { code: '+973', country: 'Bahrain', flag: '🇧🇭' },
+    { code: '+974', country: 'Qatar', flag: '🇶🇦' },
+    { code: '+975', country: 'Bhutan', flag: '🇧🇹' },
+    { code: '+976', country: 'Mongolia', flag: '🇲🇳' },
+    { code: '+977', country: 'Nepal', flag: '🇳🇵' },
+    { code: '+992', country: 'Tajikistan', flag: '🇹🇯' },
+    { code: '+993', country: 'Turkmenistan', flag: '🇹🇲' },
+    { code: '+994', country: 'Azerbaijan', flag: '🇦🇿' },
+    { code: '+995', country: 'Georgia', flag: '🇬🇪' },
+    { code: '+996', country: 'Kyrgyzstan', flag: '🇰🇬' },
+    { code: '+998', country: 'Uzbekistan', flag: '🇺🇿' }
   ];
 
   const selectedRoom = rooms.find(room => room.id.toString() === bookingData.roomId);
+
+  // Filter nationalities based on search
+  const filteredNationalities = nationalities.filter(nationality =>
+    nationality.toLowerCase().includes(nationalitySearch.toLowerCase())
+  );
+
+  // Filter country codes based on search
+  const filteredCountryCodes = countryCodes.filter(country =>
+    country.country.toLowerCase().includes(phoneCountryCodeSearch.toLowerCase()) ||
+    country.code.includes(phoneCountryCodeSearch)
+  );
+
+  // Handle clicks outside dropdown and window events
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (nationalityDropdownRef.current && !nationalityDropdownRef.current.contains(event.target)) {
+        setShowNationalityDropdown(false);
+      }
+      if (phoneCodeDropdownRef.current && !phoneCodeDropdownRef.current.contains(event.target)) {
+        setShowPhoneCodeDropdown(false);
+      }
+    };
+
+    const handleScroll = () => {
+      if (showNationalityDropdown) {
+        calculateDropdownPosition();
+      }
+      if (showPhoneCodeDropdown) {
+        calculatePhoneCodeDropdownPosition();
+      }
+    };
+
+    const handleResize = () => {
+      if (showNationalityDropdown) {
+        calculateDropdownPosition();
+      }
+      if (showPhoneCodeDropdown) {
+        calculatePhoneCodeDropdownPosition();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [showNationalityDropdown, showPhoneCodeDropdown]);
 
   const handleInputChange = (field, value) => {
     setBookingData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleNationalitySelect = (nationality) => {
+    setBookingData(prev => ({
+      ...prev,
+      nationality: nationality
+    }));
+    setNationalitySearch(nationality);
+    setShowNationalityDropdown(false);
+  };
+
+  const calculateDropdownPosition = () => {
+    if (nationalityInputRef.current) {
+      const rect = nationalityInputRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom,
+        left: rect.left,
+        width: rect.width
+      });
+    }
+  };
+
+  const handleNationalitySearchChange = (value) => {
+    setNationalitySearch(value);
+    calculateDropdownPosition();
+    setShowNationalityDropdown(true);
+    if (value === '') {
+      setBookingData(prev => ({
+        ...prev,
+        nationality: ''
+      }));
+    }
+  };
+
+  const handleNationalityFocus = () => {
+    calculateDropdownPosition();
+    setShowNationalityDropdown(true);
+  };
+
+  const calculatePhoneCodeDropdownPosition = () => {
+    if (phoneCodeInputRef.current) {
+      const rect = phoneCodeInputRef.current.getBoundingClientRect();
+      setPhoneCodeDropdownPosition({
+        top: rect.bottom,
+        left: rect.left,
+        width: rect.width
+      });
+    }
+  };
+
+  const handlePhoneCodeSelect = (countryCode) => {
+    setPhoneCountryCode(countryCode);
+    setPhoneCountryCodeSearch(countryCode);
+    setShowPhoneCodeDropdown(false);
+  };
+
+  const handlePhoneCodeSearchChange = (value) => {
+    setPhoneCountryCodeSearch(value);
+    calculatePhoneCodeDropdownPosition();
+    setShowPhoneCodeDropdown(true);
+    if (value === '') {
+      setPhoneCountryCode('+66');
+    }
+  };
+
+  const handlePhoneCodeFocus = () => {
+    calculatePhoneCodeDropdownPosition();
+    setShowPhoneCodeDropdown(true);
   };
 
   const nextStep = () => {
@@ -266,15 +631,26 @@ const Booking = () => {
                     </div>
 
                     <div className="rooms-grid vertical">
-                      {rooms.map(room => (
-                        <RoomRow
-                          key={room.id}
-                          room={room}
-                          isSelected={bookingData.roomId === room.id.toString()}
-                          onSelect={(selectedRoom) => handleInputChange('roomId', selectedRoom.id.toString())}
-                          showSelectButton={true}
-                        />
-                      ))}
+                      {loading ? (
+                        <div className="loading-state">
+                          <div className="loading-spinner"></div>
+                          <p>Loading rooms...</p>
+                        </div>
+                      ) : error ? (
+                        <div className="error-state">
+                          <p>❌ {error} | Status: Backend API not responding</p>
+                        </div>
+                      ) : (
+                        rooms.map(room => (
+                          <RoomRow
+                            key={room.id}
+                            room={room}
+                            isSelected={bookingData.roomId === room.id.toString()}
+                            onSelect={(selectedRoom) => handleInputChange('roomId', selectedRoom.id.toString())}
+                            showSelectButton={true}
+                          />
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -293,6 +669,7 @@ const Booking = () => {
                         className="form-input"
                         value={bookingData.firstName}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
+                        placeholder="Johnson"
                         required
                       />
                     </div>
@@ -303,6 +680,7 @@ const Booking = () => {
                         className="form-input"
                         value={bookingData.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
+                        placeholder="Dep"
                         required
                       />
                     </div>
@@ -316,30 +694,110 @@ const Booking = () => {
                         className="form-input"
                         value={bookingData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
+                        placeholder="Johnson.dep@example.com"
                         required
                       />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Phone Number</label>
-                      <input 
-                        type="tel"
-                        className="form-input"
-                        value={bookingData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        required
-                      />
+                      <div className="phone-input-container">
+                        <div className="phone-code-dropdown-container" ref={phoneCodeDropdownRef}>
+                          <input 
+                            ref={phoneCodeInputRef}
+                            type="text"
+                            className="phone-code-input"
+                            value={phoneCountryCodeSearch}
+                            onChange={(e) => handlePhoneCodeSearchChange(e.target.value)}
+                            onFocus={handlePhoneCodeFocus}
+                            placeholder="+66"
+                            autoComplete="off"
+                            required
+                          />
+                          {showPhoneCodeDropdown && (
+                            <div 
+                              className="phone-code-dropdown"
+                              style={{
+                                position: 'fixed',
+                                top: `${phoneCodeDropdownPosition.top}px`,
+                                left: `${phoneCodeDropdownPosition.left}px`,
+                                width: `${phoneCodeDropdownPosition.width}px`,
+                                zIndex: 9999
+                              }}
+                            >
+                              {filteredCountryCodes.length > 0 ? (
+                                filteredCountryCodes.map(country => (
+                                  <div 
+                                    key={`${country.code}-${country.country}`}
+                                    className="phone-code-option"
+                                    onClick={() => handlePhoneCodeSelect(country.code)}
+                                  >
+                                    <span className="phone-code-flag">{country.flag}</span>
+                                    <span className="phone-code-text">{country.code}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="phone-code-option no-results">
+                                  No country codes found
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <input 
+                          type="tel"
+                          className="phone-number-input"
+                          value={bookingData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          placeholder="0912345678"
+                          autoComplete="off"
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">Nationality</label>
-                    <input 
-                      type="text"
-                      className="form-input"
-                      value={bookingData.nationality}
-                      onChange={(e) => handleInputChange('nationality', e.target.value)}
-                      required
-                    />
+                    <div className="nationality-dropdown-container" ref={nationalityDropdownRef}>
+                      <input 
+                        ref={nationalityInputRef}
+                        type="text"
+                        className="form-input"
+                        value={nationalitySearch}
+                        onChange={(e) => handleNationalitySearchChange(e.target.value)}
+                        onFocus={handleNationalityFocus}
+                        placeholder="Search or select your nationality"
+                        required
+                      />
+                    </div>
+                    {showNationalityDropdown && (
+                      <div 
+                        className="nationality-dropdown"
+                        style={{
+                          position: 'fixed',
+                          top: `${dropdownPosition.top}px`,
+                          left: `${dropdownPosition.left}px`,
+                          width: `${dropdownPosition.width}px`,
+                          zIndex: 9999
+                        }}
+                      >
+                        {filteredNationalities.length > 0 ? (
+                          filteredNationalities.map(nationality => (
+                            <div 
+                              key={nationality}
+                              className="nationality-option"
+                              onClick={() => handleNationalitySelect(nationality)}
+                            >
+                              {nationality}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="nationality-option no-results">
+                            No nationalities found
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

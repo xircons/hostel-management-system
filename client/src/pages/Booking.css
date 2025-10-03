@@ -24,7 +24,7 @@
 }
 
 .booking-content {
-  max-width: 80%;
+  max-width: 90%;
   margin: 0 auto;
 }
 
@@ -320,7 +320,7 @@
 .field-input,
 .field-select {
   padding: var(--space-2);
-  border: 2px solid var(--gray-200);
+  border: 1px solid var(--gray-200);
   border-radius: var(--radius-lg);
   font-size: var(--text-base);
   transition: all var(--transition-normal);
@@ -454,7 +454,7 @@
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: all var(--transition-normal);
-  border: 2px solid transparent;
+  border: 1px solid transparent;
 }
 
 .rooms-grid.vertical .room-card:hover {
@@ -592,7 +592,7 @@
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   transition: all var(--transition-normal);
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   position: relative;
 }
 
@@ -780,7 +780,7 @@
   padding: var(--space-3) var(--space-6);
   background: var(--gray-100);
   color: var(--gray-700);
-  border: 2px solid var(--gray-200);
+  border: 1px solid var(--gray-200);
   border-radius: var(--radius-lg);
   font-weight: var(--font-semibold);
   font-size: var(--text-sm);
@@ -906,7 +906,7 @@
   padding: var(--space-3) var(--space-6);
   background: var(--gray-100);
   color: var(--gray-700);
-  border: 2px solid var(--gray-200);
+  border: 1px solid var(--gray-200);
   border-radius: var(--radius-lg);
   font-weight: var(--font-semibold);
   font-size: var(--text-sm);
@@ -1457,7 +1457,7 @@
 .action-button-secondary {
   background-color: var(--white);
   color: var(--gray-700);
-  border: 2px solid var(--gray-200);
+  border: 1px solid var(--gray-200);
 }
 
 .action-button-secondary:hover {
@@ -1623,8 +1623,8 @@
 .processing-spinner {
   width: 1rem;
   height: 1rem;
-  border: 2px solid var(--gray-300);
-  border-top: 2px solid var(--primary-dark);
+  border: 1px solid var(--gray-300);
+  border-top: 1px solid var(--primary-dark);
   border-radius: var(--radius-full);
   animation: spin 1s linear infinite;
 }
@@ -1778,3 +1778,178 @@
   }
   
 }
+
+/* Searchable Nationality Dropdown */
+.nationality-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.nationality-dropdown {
+  background-color: var(--white);
+  border: 1px solid var(--gray-200);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.nationality-option {
+  padding: var(--space-3);
+  cursor: pointer;
+  font-family: var(--font-primary);
+  font-size: var(--text-base);
+  font-weight: var(--font-light);
+  color: var(--gray-800);
+  border-bottom: 1px solid var(--gray-100);
+  transition: background-color var(--transition-fast);
+}
+
+.nationality-option:hover {
+  background-color: var(--gray-100);
+}
+
+.nationality-option:last-child {
+  border-bottom: none;
+}
+
+.nationality-option.no-results {
+  color: var(--gray-500);
+  font-style: italic;
+  cursor: default;
+}
+
+.nationality-option.no-results:hover {
+  background-color: transparent;
+}
+
+/* Phone Input Container */
+.phone-input-container {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.phone-code-dropdown-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.phone-code-input {
+  width: 80px;
+  padding: var(--space-3);
+  font-family: var(--font-primary);
+  font-size: var(--text-base);
+  font-weight: var(--font-light);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background-color: var(--white);
+  transition: border-color var(--transition-fast);
+  text-align: center;
+}
+
+.phone-code-input:focus {
+  outline: none;
+  border-color: var(--primary-dark);
+  box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+}
+
+.phone-number-input {
+  flex: 1;
+  padding: var(--space-3);
+  font-family: var(--font-primary);
+  font-size: var(--text-base);
+  font-weight: var(--font-light);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background-color: var(--white);
+  transition: border-color var(--transition-fast);
+}
+
+.phone-number-input:focus {
+  outline: none;
+  border-color: var(--primary-dark);
+  box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+}
+
+/* Phone Code Dropdown */
+.phone-code-dropdown {
+  background-color: var(--white);
+  border: 1px solid var(--gray-200);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.phone-code-option {
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  font-family: var(--font-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-light);
+  color: var(--gray-800);
+  border-bottom: 1px solid var(--gray-100);
+  transition: background-color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.phone-code-option:hover {
+  background-color: var(--gray-100);
+}
+
+.phone-code-option:last-child {
+  border-bottom: none;
+}
+
+.phone-code-option.no-results {
+  color: var(--gray-500);
+  font-style: italic;
+  cursor: default;
+}
+
+.phone-code-option.no-results:hover {
+  background-color: transparent;
+}
+
+.phone-code-flag {
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+}
+
+.phone-code-text {
+  font-weight: var(--font-medium);
+  color: var(--gray-700);
+}
+
+/* Hide browser autofill suggestions */
+.phone-input-container input::-webkit-credentials-auto-fill-button,
+.phone-input-container input::-webkit-credentials-auto-fill-button:hover,
+.phone-input-container input::-webkit-credentials-auto-fill-button:active {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hide autofill dropdown suggestions */
+.phone-input-container input::-webkit-autofill,
+.phone-input-container input::-webkit-autofill:hover,
+.phone-input-container input::-webkit-autofill:focus,
+.phone-input-container input::-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: var(--gray-800) !important;
+}
+
+/* Disable autocomplete for phone fields */
+.phone-input-container input {
+  -webkit-autocomplete: off;
+  -moz-autocomplete: off;
+  -ms-autocomplete: off;
+}
+

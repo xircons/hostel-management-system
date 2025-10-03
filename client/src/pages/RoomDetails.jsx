@@ -1,11 +1,77 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import apiService from '../services/api';
 import './RoomDetails.css';
 
 const RoomDetails = () => {
   const { id } = useParams();
   const [room, setRoom] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Fetch room data from database
+  useEffect(() => {
+    const fetchRoom = async () => {
+      try {
+        setLoading(true);
+        setCurrentImageIndex(0); // Reset image index when room changes
+        const response = await apiService.getRoomById(id);
+        if (response.success) {
+          // Transform database data to match component expectations
+          const roomData = {
+            id: response.data.id,
+            name: response.data.name,
+            type: response.data.room_type,
+            price: response.data.base_price,
+            size: `${response.data.size_sqm}m²`,
+            capacity: response.data.capacity,
+            amenities: response.data.amenities_th || response.data.amenities, // Use Thai amenities if available
+            images: response.data.images,
+            description: response.data.description,
+            detailedDescription: response.data.detailed_description_th || response.data.detailed_description,
+            available: response.data.is_available,
+            features: response.data.amenities_th || response.data.amenities, // Use amenities as features
+            policies: [
+              "Check-in: 2:00 PM - 10:00 PM",
+              "Check-out: 11:00 AM",
+              response.data.has_private_bathroom ? "Private bathroom" : "Shared bathroom facilities",
+              response.data.requires_stairs ? "Upper floor access via stairs only" : "Ground floor access",
+              response.data.bed_type ? `${response.data.bed_type} bed` : "Comfortable bedding"
+            ],
+            // Additional information from database
+            roomSize: response.data.size_sqm,
+            floorNumber: response.data.floor_number,
+            roomNumber: response.data.room_number,
+            bedType: response.data.bed_type,
+            bedCount: response.data.bed_count,
+            hasAirConditioning: response.data.has_air_conditioning,
+            hasWifi: response.data.has_wifi,
+            hasPrivateBathroom: response.data.has_private_bathroom,
+            hasSharedBathroom: response.data.has_shared_bathroom,
+            hasDesk: response.data.has_desk,
+            requiresStairs: response.data.requires_stairs,
+            weekendPrice: response.data.weekend_price,
+            holidayPrice: response.data.holiday_price
+          };
+          setRoom(roomData);
+        } else {
+          setError('Room not found');
+        }
+      } catch (err) {
+        console.error('Error fetching room:', err);
+        setError('Failed to load room details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchRoom();
+      // Scroll to top when room changes
+      window.scrollTo(0, 0);
+    }
+  }, [id]);
 
   // Auto-slide effect
   useEffect(() => {
@@ -25,128 +91,25 @@ const RoomDetails = () => {
     setCurrentImageIndex(index);
   };
 
-  // Sample room data
-  const rooms = [
-    {
-      id: 1,
-      name: "Standard King Bed Room",
-      type: "Private",
-      price: 531,
-      size: "15m²",
-      capacity: 2,
-      amenities: ["เครื่องปรับอากาศ", "ปลั๊กใกล้เตียง", "พื้นกระเบื้อง/หินอ่อน", "โต๊ะทำงาน", "มุ้ง", "พัดลม", "เครื่องอบผ้า", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "ราวแขวนเสื้อผ้า"],
-      images: [
-        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o="
-      ],
-      description: "Comfortable private room with king-size bed, air conditioning, and shared bathroom facilities. Located on upper floor with stair access only.",
-      available: true,
-      detailedDescription: "This spacious private room features a comfortable king-size bed, air conditioning for your comfort, and access to shared bathroom facilities. The room is located on the upper floor and is accessible by stairs only. Perfect for couples or solo travelers seeking privacy and comfort.",
-      features: [
-        "เตียงคิงไซส์",
-        "เครื่องปรับอากาศ",
-        "ปลั๊กใกล้เตียง",
-        "พื้นกระเบื้อง/หินอ่อน",
-        "โต๊ะทำงาน",
-        "มุ้ง",
-        "พัดลม",
-        "เครื่องอบผ้า",
-        "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น",
-        "ราวแขวนเสื้อผ้า"
-      ],
-      policies: [
-        "Check-in: 2:00 PM - 10:00 PM",
-        "Check-out: 11:00 AM",
-        "No smoking in rooms",
-        "Shared bathroom facilities",
-        "Upper floor access via stairs only"
-      ]
-    },
-    {
-      id: 2,
-      name: "Female Dormitory 4-Bed",
-      type: "Dormitory",
-      price: 216,
-      size: "15m²",
-      capacity: 4,
-      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
-      images: [
-        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276533.jpg?k=652f3d9b297cabc399e4e20bbf879430eb3d294fc5c544ff8bdf0090cbbf2798&o=",
-        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276515.jpg?k=3590856db47369f89cfbc6db704014d220cc68e937be7383fb5af7d440890e87&o=",
-        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o="
-      ],
-      description: "Comfortable female-only dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
-      available: true,
-      detailedDescription: "This female-only dormitory offers a safe and comfortable environment for female travelers. The room features 4 comfortable beds, air conditioning, and access to shared bathroom facilities. Perfect for solo female travelers or groups of female friends.",
-      features: [
-        "4 เตียงในเตียงสองชั้น",
-        "ชุดผ้าสำหรับห้องพัก",
-        "พัดลม",
-        "เครื่องอบผ้า",
-        "พื้นกระเบื้อง/หินอ่อน",
-        "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น",
-        "มุ้ง",
-        "ปลั๊กใกล้เตียง",
-        "เครื่องปรับอากาศ",
-        "ห้องพักสำหรับผู้หญิงเท่านั้น"
-      ],
-      policies: [
-        "Check-in: 2:00 PM - 10:00 PM",
-        "Check-out: 11:00 AM",
-        "Female-only accommodation",
-        "Shared bathroom facilities",
-        "Bedding included"
-      ]
-    },
-    {
-      id: 3,
-      name: "Mixed Dormitory 4-Bed",
-      type: "Dormitory",
-      price: 216,
-      size: "15m²",
-      capacity: 4,
-      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
-      images: [
-        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276494.jpg?k=fa258523250cc272021978eca8489404a422b425991d2aee3e3cd5bcd2fb71ac&o=",
-        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o="
-      ],
-      description: "Comfortable mixed dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
-      available: true,
-      detailedDescription: "This mixed dormitory welcomes travelers of all genders. The room features 4 comfortable beds, air conditioning, and access to shared bathroom facilities. Perfect for budget-conscious travelers who enjoy meeting new people.",
-      features: [
-        "4 เตียงในเตียงสองชั้น",
-        "ชุดผ้าสำหรับห้องพัก",
-        "พัดลม",
-        "เครื่องอบผ้า",
-        "พื้นกระเบื้อง/หินอ่อน",
-        "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น",
-        "มุ้ง",
-        "ปลั๊กใกล้เตียง",
-        "เครื่องปรับอากาศ",
-        "ห้องพักสำหรับทุกเพศ"
-      ],
-      policies: [
-        "Check-in: 2:00 PM - 10:00 PM",
-        "Check-out: 11:00 AM",
-        "Mixed gender accommodation",
-        "Shared bathroom facilities",
-        "Bedding included"
-      ]
-    }
-  ];
-
-  useEffect(() => {
-    const foundRoom = rooms.find(r => r.id.toString() === id);
-    setRoom(foundRoom);
-  }, [id]);
-
-
-  if (!room) {
+  if (loading) {
     return (
-      <div className="room-details-page">
+      <div className="room-details-page" key={id}>
         <div className="container">
-          <div className="error-message">
-            <h2>Room Not Found</h2>
-            <p>The room you're looking for doesn't exist.</p>
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p>Loading room details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !room) {
+    return (
+      <div className="room-details-page" key={id}>
+        <div className="container">
+          <div className="error-state">
+            <p>❌ {error || 'Room not found'} | Status: Backend API not responding</p>
             <Link to="/rooms" className="btn btn-primary">Back to Rooms</Link>
           </div>
         </div>
@@ -155,7 +118,7 @@ const RoomDetails = () => {
   }
 
   return (
-    <div className="room-details-page">
+    <div className="room-details-page" key={id}>
       <div className="container">
         {/* Breadcrumb */}
         <nav className="breadcrumb">
@@ -451,15 +414,31 @@ const RoomDetails = () => {
                 </div>
                 <div className="info-item">
                   <span className="info-label">Room Size</span>
-                  <span className="info-value">25 m²</span>
+                  <span className="info-value">{room.roomSize} m²</span>
                 </div>
                 <div className="info-item">
                   <span className="info-label">Floor</span>
-                  <span className="info-value">2nd Floor</span>
+                  <span className="info-value">{room.floorNumber} Floor</span>
                 </div>
                 <div className="info-item">
-                  <span className="info-label">View</span>
-                  <span className="info-value">City View</span>
+                  <span className="info-label">Room Number</span>
+                  <span className="info-value">{room.roomNumber}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Bed Type</span>
+                  <span className="info-value">{room.bedType} ({room.bedCount} bed{room.bedCount > 1 ? 's' : ''})</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Weekend Price</span>
+                  <span className="info-value">฿{room.weekendPrice}/night</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Holiday Price</span>
+                  <span className="info-value">฿{room.holidayPrice}/night</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Access</span>
+                  <span className="info-value">{room.requiresStairs ? 'Stairs only' : 'Ground floor'}</span>
                 </div>
               </div>
             </div>

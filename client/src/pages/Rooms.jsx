@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import RoomRow from '../components/RoomRow';
+import apiService from '../services/api';
 import './Rooms.css';
 
 const Rooms = () => {
@@ -8,46 +9,45 @@ const Rooms = () => {
     priceRange: 'all',
     availability: 'all'
   });
+  
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample room data
-  const rooms = [
-    {
-      id: 1,
-      name: "Standard King Bed Room",
-      type: "Private",
-      price: 531,
-      size: "15m²",
-      capacity: 2,
-      amenities: ["เครื่องปรับอากาศ", "ปลั๊กใกล้เตียง", "พื้นกระเบื้อง/หินอ่อน", "โต๊ะทำงาน", "มุ้ง", "พัดลม", "เครื่องอบผ้า", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "ราวแขวนเสื้อผ้า"],
-      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o=",
-      description: "Comfortable private room with king-size bed, air conditioning, and shared bathroom facilities. Located on upper floor with stair access only.",
-      available: true
-    },
-    {
-      id: 2,
-      name: "Female Dormitory 4-Bed",
-      type: "Dormitory",
-      price: 216,
-      size: "15m²",
-      capacity: 4,
-      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
-      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276533.jpg?k=652f3d9b297cabc399e4e20bbf879430eb3d294fc5c544ff8bdf0090cbbf2798&o=",
-      description: "Comfortable female-only dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
-      available: true
-    },
-    {
-      id: 3,
-      name: "Mixed Dormitory 4-Bed",
-      type: "Dormitory",
-      price: 216,
-      size: "15m²",
-      capacity: 4,
-      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
-      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276494.jpg?k=fa258523250cc272021978eca8489404a422b425991d2aee3e3cd5bcd2fb71ac&o=",
-      description: "Comfortable mixed dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
-      available: true
-    }
-  ];
+  // Fetch rooms from database
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        setLoading(true);
+        const response = await apiService.getRooms();
+        if (response.success) {
+          // Transform database data to match component expectations
+          const roomsData = response.data.map(room => ({
+            id: room.id,
+            name: room.name,
+            type: room.room_type,
+            price: room.base_price,
+            size: `${room.size_sqm}m²`,
+            capacity: room.capacity,
+            amenities: room.amenities_th || room.amenities, // Use Thai amenities if available
+            image: room.main_image_url,
+            description: room.description,
+            available: room.is_available
+          }));
+          setRooms(roomsData);
+        } else {
+          setError('Failed to load rooms');
+        }
+      } catch (err) {
+        console.error('Error fetching rooms:', err);
+        setError('Failed to connect to server');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRooms();
+  }, []);
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
@@ -57,7 +57,7 @@ const Rooms = () => {
   };
 
   const filteredRooms = rooms.filter(room => {
-    if (filters.type !== 'all' && room.type.toLowerCase() !== filters.type.toLowerCase()) {
+    if (filters.type !== 'all' && room.type !== filters.type) {
       return false;
     }
     
@@ -108,9 +108,8 @@ const Rooms = () => {
                 onChange={(e) => handleFilterChange('type', e.target.value)}
               >
                 <option value="all">All Types</option>
-                <option value="dormitory">Dormitory</option>
-                <option value="private">Private</option>
-                <option value="family">Family</option>
+                <option value="Single Room">Single Room</option>
+                <option value="Double Room">Double Room</option>
               </select>
             </div>
 
@@ -146,13 +145,22 @@ const Rooms = () => {
         {/* Results Count */}
         <div className="results-info">
           <p className="results-count">
-            Showing {filteredRooms.length} of {rooms.length} rooms
+            {loading ? 'Loading...' : error ? 'Error loading rooms' : `Showing ${filteredRooms.length} of ${rooms.length} rooms`}
           </p>
         </div>
 
         {/* Rooms Grid */}
         <div className="rooms-grid">
-          {filteredRooms.length > 0 ? (
+          {loading ? (
+            <div className="loading-state">
+              <div className="loading-spinner"></div>
+              <p>Loading rooms...</p>
+            </div>
+          ) : error ? (
+            <div className="error-state">
+              <p>❌ {error} | Status: Backend API not responding</p>
+            </div>
+          ) : filteredRooms.length > 0 ? (
             filteredRooms.map((room) => (
               <RoomRow key={room.id} room={room} />
             ))

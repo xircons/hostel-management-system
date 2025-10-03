@@ -320,7 +320,7 @@ const PremiumPromptPay = ({
                 <button
                   onClick={handleSaveQR}
                   disabled={isDownloading}
-                  className="flex-1 bg-white border-2 border-gray-200 hover:border-blue-500 hover:text-blue-600 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 bg-white border-1 border-gray-200 hover:border-blue-500 hover:text-blue-600 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   {isDownloading ? 'Saving...' : 'Download'}
@@ -328,7 +328,7 @@ const PremiumPromptPay = ({
                 
                 <button
                   onClick={handleCopyID}
-                  className="flex-1 bg-white border-2 border-gray-200 hover:border-blue-500 hover:text-blue-600 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 bg-white border-1 border-gray-200 hover:border-blue-500 hover:text-blue-600 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg flex items-center justify-center gap-2"
                 >
                   <Copy className="w-4 h-4" />
                   Copy ID
