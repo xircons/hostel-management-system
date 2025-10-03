@@ -7,18 +7,6 @@
   --white: #ffffff;
   --black: #000000;
   
-  /* Accent Colors */
-  --accent-blue: #3b82f6;
-  --accent-gold: #f59e0b;
-  --accent-gold-dark: #d97706;
-  --accent-green: #10b981;
-  --accent-green-dark: #059669;
-  --accent-purple: #8b5cf6;
-  --accent-purple-dark: #7c3aed;
-  --accent-red: #ef4444;
-  --accent-red-dark: #dc2626;
-  --accent-yellow: #fbbf24;
-  
   /* Transparency Colors */
   --primary-dark-transparent: rgba(26, 26, 26, 0.8);
   --primary-dark-semi: rgba(26, 26, 26, 0.6);

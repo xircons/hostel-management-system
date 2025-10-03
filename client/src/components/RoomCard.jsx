@@ -31,10 +31,6 @@ const RoomCard = ({ room }) => {
       <div className="room-content">
         <div className="room-header">
           <h3 className="room-name">{name}</h3>
-          <div className="room-price">
-            <span className="price-amount">${price}</span>
-            <span className="price-period">/night</span>
-          </div>
         </div>
         
         <p className="room-description">{description}</p>

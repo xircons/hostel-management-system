@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import RoomCard from '../components/RoomCard';
+import RoomRow from '../components/RoomRow';
 import './Rooms.css';
 
 const Rooms = () => {
@@ -13,68 +13,38 @@ const Rooms = () => {
   const rooms = [
     {
       id: 1,
-      name: "Cozy Dormitory",
-      type: "Dormitory",
-      price: 25,
-      capacity: 6,
-      amenities: ["WiFi", "Air Conditioning", "Shared Bathroom", "Locker", "Bedding"],
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Black.png/250px-Black.png",
-      description: "Perfect for budget travelers. Clean, comfortable beds in a shared dormitory setting.",
+      name: "Standard King Bed Room",
+      type: "Private",
+      price: 531,
+      size: "15m²",
+      capacity: 2,
+      amenities: ["เครื่องปรับอากาศ", "ปลั๊กใกล้เตียง", "พื้นกระเบื้อง/หินอ่อน", "โต๊ะทำงาน", "มุ้ง", "พัดลม", "เครื่องอบผ้า", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "ราวแขวนเสื้อผ้า"],
+      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o=",
+      description: "Comfortable private room with king-size bed, air conditioning, and shared bathroom facilities. Located on upper floor with stair access only.",
       available: true
     },
     {
       id: 2,
-      name: "Private Single",
-      type: "Private",
-      price: 45,
-      capacity: 1,
-      amenities: ["WiFi", "Air Conditioning", "Private Bathroom", "Desk", "TV"],
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Black.png/250px-Black.png",
-      description: "Your own private space with all the comforts of home. Perfect for solo travelers.",
+      name: "Female Dormitory 4-Bed",
+      type: "Dormitory",
+      price: 216,
+      size: "15m²",
+      capacity: 4,
+      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
+      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276533.jpg?k=652f3d9b297cabc399e4e20bbf879430eb3d294fc5c544ff8bdf0090cbbf2798&o=",
+      description: "Comfortable female-only dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
       available: true
     },
     {
       id: 3,
-      name: "Family Suite",
-      type: "Family",
-      price: 85,
-      capacity: 4,
-      amenities: ["WiFi", "Air Conditioning", "Private Bathroom", "Kitchenette", "Sofa", "TV"],
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Black.png/250px-Black.png",
-      description: "Spacious suite perfect for families or groups. Includes kitchenette and living area.",
-      available: false
-    },
-    {
-      id: 4,
-      name: "Deluxe Double",
-      type: "Private",
-      price: 65,
-      capacity: 2,
-      amenities: ["WiFi", "Air Conditioning", "Private Bathroom", "Mini Fridge", "TV", "Balcony"],
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Black.png/250px-Black.png",
-      description: "Comfortable double room with modern amenities and a private balcony.",
-      available: true
-    },
-    {
-      id: 5,
-      name: "Budget Dormitory",
+      name: "Mixed Dormitory 4-Bed",
       type: "Dormitory",
-      price: 20,
-      capacity: 8,
-      amenities: ["WiFi", "Shared Bathroom", "Locker", "Bedding"],
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Black.png/250px-Black.png",
-      description: "Basic dormitory accommodation for budget-conscious travelers.",
-      available: true
-    },
-    {
-      id: 6,
-      name: "Executive Suite",
-      type: "Family",
-      price: 120,
-      capacity: 6,
-      amenities: ["WiFi", "Air Conditioning", "Private Bathroom", "Kitchen", "Living Room", "TV", "Balcony"],
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Black.png/250px-Black.png",
-      description: "Luxurious suite with separate living area, kitchen, and stunning city views.",
+      price: 216,
+      size: "15m²",
+      capacity: 4,
+      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
+      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276494.jpg?k=fa258523250cc272021978eca8489404a422b425991d2aee3e3cd5bcd2fb71ac&o=",
+      description: "Comfortable mixed dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
       available: true
     }
   ];
@@ -100,13 +70,13 @@ const Rooms = () => {
       const price = room.price;
       switch (filters.priceRange) {
         case 'budget':
-          if (price > 30) return false;
+          if (price > 300) return false;
           break;
         case 'mid':
-          if (price < 30 || price > 70) return false;
+          if (price < 300 || price > 500) return false;
           break;
         case 'luxury':
-          if (price < 70) return false;
+          if (price < 500) return false;
           break;
         default:
           break;
@@ -133,7 +103,7 @@ const Rooms = () => {
             <div className="filter-group">
               <label className="filter-label">Room Type</label>
               <select 
-                className="form-select"
+                className="field-select"
                 value={filters.type}
                 onChange={(e) => handleFilterChange('type', e.target.value)}
               >
@@ -147,21 +117,21 @@ const Rooms = () => {
             <div className="filter-group">
               <label className="filter-label">Price Range</label>
               <select 
-                className="form-select"
+                className="field-select"
                 value={filters.priceRange}
                 onChange={(e) => handleFilterChange('priceRange', e.target.value)}
               >
                 <option value="all">All Prices</option>
-                <option value="budget">Budget ($0-30)</option>
-                <option value="mid">Mid-range ($30-70)</option>
-                <option value="luxury">Luxury ($70+)</option>
+                <option value="budget">Budget (฿0-300)</option>
+                <option value="mid">Mid-range (฿300-500)</option>
+                <option value="luxury">Luxury (฿500+)</option>
               </select>
             </div>
 
             <div className="filter-group">
               <label className="filter-label">Availability</label>
               <select 
-                className="form-select"
+                className="field-select"
                 value={filters.availability}
                 onChange={(e) => handleFilterChange('availability', e.target.value)}
               >
@@ -184,7 +154,7 @@ const Rooms = () => {
         <div className="rooms-grid">
           {filteredRooms.length > 0 ? (
             filteredRooms.map((room) => (
-              <RoomCard key={room.id} room={room} />
+              <RoomRow key={room.id} room={room} />
             ))
           ) : (
             <div className="no-results">

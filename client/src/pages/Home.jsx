@@ -8,36 +8,36 @@ const Home = () => {
   const featuredRooms = [
     {
       id: 1,
-      name: "Cozy Dormitory",
-      type: "Dormitory",
-      price: 25,
-      capacity: 6,
-      amenities: ["WiFi", "Air Conditioning", "Shared Bathroom", "Locker", "Bedding"],
-        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Black.png/250px-Black.png",
-      description: "Perfect for budget travelers. Clean, comfortable beds in a shared dormitory setting.",
+      name: "Standard King Bed Room",
+      type: "Private",
+      price: 531,
+      capacity: 2,
+      amenities: ["เครื่องปรับอากาศ", "ปลั๊กใกล้เตียง", "พื้นกระเบื้อง/หินอ่อน", "โต๊ะทำงาน", "มุ้ง", "พัดลม", "เครื่องอบผ้า", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "ราวแขวนเสื้อผ้า"],
+      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o=",
+      description: "Comfortable private room with king-size bed, air conditioning, and shared bathroom facilities. Located on upper floor with stair access only.",
       available: true
     },
     {
       id: 2,
-      name: "Private Single",
-      type: "Private",
-      price: 45,
-      capacity: 1,
-      amenities: ["WiFi", "Air Conditioning", "Private Bathroom", "Desk", "TV"],
-        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Black.png/250px-Black.png",
-      description: "Your own private space with all the comforts of home. Perfect for solo travelers.",
+      name: "Female Dormitory 4-Bed",
+      type: "Dormitory",
+      price: 216,
+      capacity: 4,
+      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
+      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276533.jpg?k=652f3d9b297cabc399e4e20bbf879430eb3d294fc5c544ff8bdf0090cbbf2798&o=",
+      description: "Comfortable female-only dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
       available: true
     },
     {
       id: 3,
-      name: "Family Suite",
-      type: "Family",
-      price: 85,
+      name: "Mixed Dormitory 4-Bed",
+      type: "Dormitory",
+      price: 216,
       capacity: 4,
-      amenities: ["WiFi", "Air Conditioning", "Private Bathroom", "Kitchenette", "Sofa", "TV"],
-        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Black.png/250px-Black.png",
-      description: "Spacious suite perfect for families or groups. Includes kitchenette and living area.",
-      available: false
+      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
+      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276494.jpg?k=fa258523250cc272021978eca8489404a422b425991d2aee3e3cd5bcd2fb71ac&o=",
+      description: "Comfortable mixed dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
+      available: true
     }
   ];
 
@@ -128,7 +128,7 @@ const Home = () => {
       {/* Full-viewport Hero Image */}
       <div className="hero-image-full">
         <img
-          src="https://leibal.com/wp-content/uploads/2025/01/leibal-grey-house-adam-kane-architects-1.jpg"
+          src="https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276499.jpg?k=028c95e3277601bfcf97c6a706528efa197505b5b46b7ddf3baf1313fca7913a&o="
           alt="pppwtk"
         />
       </div>

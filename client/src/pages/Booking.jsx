@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import QRCode from 'qrcode';
+import { PaymentProvider } from '../contexts/PaymentContext';
+import QRPaymentStep from '../components/QRPaymentStep';
+import RoomRow from '../components/RoomRow';
 import './Booking.css';
 
 const Booking = () => {
@@ -28,21 +31,44 @@ const Booking = () => {
     specialRequests: ''
   });
 
-  // Payment state
-  const [paymentState, setPaymentState] = useState('awaiting'); // awaiting, processing, success, error
-  const [qrCodeDataURL, setQrCodeDataURL] = useState('');
-  const [isCopied, setIsCopied] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  
-  const canvasRef = useRef(null);
 
   const rooms = [
-    { id: 1, name: "Cozy Dormitory", price: 25, type: "Dormitory" },
-    { id: 2, name: "Private Single", price: 45, type: "Private" },
-    { id: 3, name: "Family Suite", price: 85, type: "Family" },
-    { id: 4, name: "Deluxe Double", price: 65, type: "Private" },
-    { id: 5, name: "Budget Dormitory", price: 20, type: "Dormitory" },
-    { id: 6, name: "Executive Suite", price: 120, type: "Family" }
+    { 
+      id: 1, 
+      name: "Standard King Bed Room", 
+      price: 531, 
+      type: "Private",
+      size: "15m²",
+      capacity: 2,
+      amenities: ["เครื่องปรับอากาศ", "ปลั๊กใกล้เตียง", "พื้นกระเบื้อง/หินอ่อน", "โต๊ะทำงาน", "มุ้ง", "พัดลม", "เครื่องอบผ้า", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "ราวแขวนเสื้อผ้า"],
+      description: "Comfortable private room with king-size bed, air conditioning, and shared bathroom facilities. Located on upper floor with stair access only.",
+      available: true,
+      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o="
+    },
+    { 
+      id: 2, 
+      name: "Female Dormitory 4-Bed", 
+      price: 216, 
+      type: "Dormitory",
+      size: "15m²",
+      capacity: 4,
+      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
+      description: "Comfortable female-only dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
+      available: true,
+      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276533.jpg?k=652f3d9b297cabc399e4e20bbf879430eb3d294fc5c544ff8bdf0090cbbf2798&o="
+    },
+    { 
+      id: 3, 
+      name: "Mixed Dormitory 4-Bed", 
+      price: 216, 
+      type: "Dormitory",
+      size: "15m²",
+      capacity: 4,
+      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
+      description: "Comfortable mixed dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
+      available: true,
+      image: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276494.jpg?k=fa258523250cc272021978eca8489404a422b425991d2aee3e3cd5bcd2fb71ac&o="
+    }
   ];
 
   const selectedRoom = rooms.find(room => room.id.toString() === bookingData.roomId);
@@ -83,201 +109,6 @@ const Booking = () => {
     alert('Booking confirmed! You will receive a confirmation email shortly.');
   };
 
-  // Payment functions
-  useEffect(() => {
-    if (currentStep === 3 && paymentState === 'awaiting') {
-      generateQRCode();
-    }
-  }, [currentStep, paymentState]);
-
-  // Regenerate QR code on window resize for responsive behavior
-  useEffect(() => {
-    const handleResize = () => {
-      if (currentStep === 3 && paymentState === 'awaiting') {
-        generateQRCode();
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [currentStep, paymentState]);
-
-  const generateQRCode = async () => {
-    try {
-      const qrString = `00020101021229370016A0000006770101110113006681234567890254040005303764540500${calculateTotal().toFixed(2)}5802TH6304`;
-      
-      // Calculate responsive QR size
-      const getQRSize = () => {
-        const viewportWidth = window.innerWidth;
-        if (viewportWidth <= 480) {
-          return Math.min(280, viewportWidth * 0.6);
-        } else if (viewportWidth <= 768) {
-          return Math.min(320, viewportWidth * 0.7);
-        } else {
-          return Math.min(400, viewportWidth * 0.8);
-        }
-      };
-      
-      const qrSize = getQRSize();
-      
-      const qrDataURL = await QRCode.toDataURL(qrString, {
-        width: qrSize,
-        margin: 2,
-        color: { dark: '#1a1a1a', light: '#FFFFFF' },
-        errorCorrectionLevel: 'M'
-      });
-
-      setQrCodeDataURL(qrDataURL);
-
-      if (canvasRef.current) {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        
-        // Set canvas size to match QR size
-        canvas.width = qrSize;
-        canvas.height = qrSize;
-        
-        const qrImage = new Image();
-        qrImage.onload = () => {
-          ctx.drawImage(qrImage, 0, 0, qrSize, qrSize);
-          drawPromptPayLogo(ctx, qrSize, qrSize);
-        };
-        qrImage.src = qrDataURL;
-      }
-    } catch (error) {
-      console.error('Error generating QR code:', error);
-      setPaymentState('error');
-    }
-  };
-
-  const drawPromptPayLogo = (ctx, width, height) => {
-    const logoSize = Math.min(width, height) * 0.15; // 15% of QR size
-    const centerX = width / 2;
-    const centerY = height / 2;
-    
-    // Create image element for Thai QR logo
-    const logoImage = new Image();
-    logoImage.crossOrigin = 'anonymous';
-    
-    logoImage.onload = () => {
-      // // White background circle
-      // ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-      // ctx.beginPath();
-      // ctx.arc(centerX, centerY, logoSize / 2, 0, 2 * Math.PI);
-      // ctx.fill();
-      
-      // Draw the Thai QR logo
-      const logoX = centerX - logoSize / 2;
-      const logoY = centerY - logoSize / 2;
-      ctx.drawImage(logoImage, logoX, logoY, logoSize, logoSize);
-    };
-    
-    logoImage.onerror = () => {
-      // Fallback to simple "P" if image fails to load
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, logoSize / 2, 0, 2 * Math.PI);
-      ctx.fill();
-      
-      ctx.fillStyle = '#1E40AF';
-      ctx.font = 'bold 28px system-ui';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('P', centerX, centerY);
-    };
-    
-    // Load the official Thai QR Payment logo
-    logoImage.src = 'https://www.bot.or.th/content/dam/bot/icons/icon-thaiqr.png';
-  };
-
-
-  const handlePaymentComplete = () => {
-    setPaymentState('processing');
-    
-    // Simulate processing
-    setTimeout(() => {
-      setPaymentState('success');
-      setTimeout(() => {
-        nextStep();
-      }, 2000);
-    }, 1500);
-  };
-
-  const handleSaveQR = async () => {
-    setIsDownloading(true);
-    
-    try {
-      if (canvasRef.current) {
-        const link = document.createElement('a');
-        link.download = `promptpay-qr-BK${Date.now()}.png`;
-        link.href = canvasRef.current.toDataURL();
-        link.click();
-      }
-    } catch (error) {
-      console.error('Error saving QR code:', error);
-    } finally {
-      setTimeout(() => setIsDownloading(false), 1000);
-    }
-  };
-
-  const handleCopyID = async () => {
-    try {
-      await navigator.clipboard.writeText('0066812345678');
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (error) {
-      console.error('Failed to copy:', error);
-    }
-  };
-
-  const getStatusIcon = () => {
-    switch (paymentState) {
-      case 'awaiting':
-        return <div className="status-icon status-icon-clock"></div>;
-      case 'processing':
-        return <div className="status-icon status-icon-spinner"></div>;
-      case 'success':
-        return <div className="status-icon status-icon-check"></div>;
-      case 'error':
-      case 'expired':
-        return <div className="status-icon status-icon-error"></div>;
-      default:
-        return <div className="status-icon status-icon-clock"></div>;
-    }
-  };
-
-  const getStatusMessage = () => {
-    switch (paymentState) {
-      case 'awaiting':
-        return 'Awaiting Payment';
-      case 'processing':
-        return 'Verifying Payment...';
-      case 'success':
-        return 'Payment Successful!';
-      case 'error':
-        return 'Payment Error';
-      case 'expired':
-        return 'Payment Expired';
-      default:
-        return 'Awaiting Payment';
-    }
-  };
-
-  const getStatusClass = () => {
-    switch (paymentState) {
-      case 'awaiting':
-        return 'status-banner-awaiting';
-      case 'processing':
-        return 'status-banner-processing';
-      case 'success':
-        return 'status-banner-success';
-      case 'error':
-      case 'expired':
-        return 'status-banner-error';
-      default:
-        return 'status-banner-awaiting';
-    }
-  };
 
   const steps = [
     { number: 1, title: 'Room & Dates', description: 'Select your room and dates' },
@@ -287,8 +118,9 @@ const Booking = () => {
   ];
 
   return (
-    <div className="booking-page">
-      <div className="container">
+    <PaymentProvider>
+      <div className="booking-page">
+        <div className="container">
         {/* Header */}
         <div className="page-header">
           <h1 className="page-title">Book Your Stay</h1>
@@ -329,62 +161,121 @@ const Booking = () => {
               {/* Step 1: Room & Dates */}
               {currentStep === 1 && (
                 <div className="form-step">
-                  <h2 className="step-title">Select Room & Dates</h2>
-                  
-                  <div className="form-group">
-                    <label className="form-label">Room Type</label>
-                    <select 
-                      className="form-select"
-                      value={bookingData.roomId}
-                      onChange={(e) => handleInputChange('roomId', e.target.value)}
-                      required
-                    >
-                      <option value="">Select a room</option>
+                  {/* Step Header */}
+                  {/* <div className="step-header">
+                    <h2 className="step-title">Choose Your Perfect Room</h2>
+                    <p className="step-description">Select your dates and find the ideal accommodation for your stay</p>
+                  </div> */}
+
+                  {/* Search Section */}
+                  <div className="search-section">
+                    <div className="search-card">
+                      <div className="search-header">
+                        <h3 className="search-title">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 7V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V7M3 7L21 7M3 7V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M8 11H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          Search & Filter
+                        </h3>
+                      </div>
+                      
+                      <div className="search-form">
+                        <div className="search-row horizontal">
+                          <div className="search-field">
+                            <label className="field-label">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 2V5M16 2V5M3.5 9.09H20.5M21 8.5V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V8.5C3 7.39543 3.89543 6.5 5 6.5H19C20.1046 6.5 21 7.39543 21 8.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                              Check-in Date
+                            </label>
+                            <input 
+                              type="date"
+                              className="field-input"
+                              value={bookingData.checkIn}
+                              onChange={(e) => handleInputChange('checkIn', e.target.value)}
+                              min={new Date().toISOString().split('T')[0]}
+                              required
+                            />
+                          </div>
+                          
+                          <div className="search-field">
+                            <label className="field-label">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 2V5M16 2V5M3.5 9.09H20.5M21 8.5V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V8.5C3 7.39543 3.89543 6.5 5 6.5H19C20.1046 6.5 21 7.39543 21 8.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                              Check-out Date
+                            </label>
+                            <input 
+                              type="date"
+                              className="field-input"
+                              value={bookingData.checkOut}
+                              onChange={(e) => handleInputChange('checkOut', e.target.value)}
+                              min={bookingData.checkIn || new Date().toISOString().split('T')[0]}
+                              required
+                            />
+                          </div>
+                          
+                          <div className="search-field">
+                            <label className="field-label">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17 21V19C17 17.134 13.866 14 10 14C6.13401 14 3 17.134 3 19V21M10 11C12.2091 11 14 9.20914 14 7C14 4.79086 12.2091 3 10 3C7.79086 3 6 4.79086 6 7C6 9.20914 7.79086 11 10 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                              Guests
+                            </label>
+                            <select 
+                              className="field-select"
+                              value={bookingData.guests}
+                              onChange={(e) => handleInputChange('guests', parseInt(e.target.value))}
+                              required
+                            >
+                              {[1,2,3,4,5,6,7,8].map(num => (
+                                <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div className="search-field">
+                            <button type="button" className="search-btn" onClick={nextStep}>
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Results Section */}
+                  <div className="results-section">
+                    <div className="results-header">
+                      <h3 className="results-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M3 7V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V7M3 7L21 7M3 7V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Available Rooms ({rooms.length})
+                      </h3>
+                      <div className="results-summary">
+                        {bookingData.checkIn && bookingData.checkOut && (
+                          <span className="date-range">
+                            {new Date(bookingData.checkIn).toLocaleDateString()} - {new Date(bookingData.checkOut).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="rooms-grid vertical">
                       {rooms.map(room => (
-                        <option key={room.id} value={room.id}>
-                          {room.name} - ${room.price}/night ({room.type})
-                        </option>
+                        <RoomRow
+                          key={room.id}
+                          room={room}
+                          isSelected={bookingData.roomId === room.id.toString()}
+                          onSelect={(selectedRoom) => handleInputChange('roomId', selectedRoom.id.toString())}
+                          showSelectButton={true}
+                        />
                       ))}
-                    </select>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label className="form-label">Check-in Date</label>
-                      <input 
-                        type="date"
-                        className="form-input"
-                        value={bookingData.checkIn}
-                        onChange={(e) => handleInputChange('checkIn', e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                        required
-                      />
                     </div>
-                    <div className="form-group">
-                      <label className="form-label">Check-out Date</label>
-                      <input 
-                        type="date"
-                        className="form-input"
-                        value={bookingData.checkOut}
-                        onChange={(e) => handleInputChange('checkOut', e.target.value)}
-                        min={bookingData.checkIn || new Date().toISOString().split('T')[0]}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Number of Guests</label>
-                    <select 
-                      className="form-select"
-                      value={bookingData.guests}
-                      onChange={(e) => handleInputChange('guests', parseInt(e.target.value))}
-                      required
-                    >
-                      {[1,2,3,4,5,6,7,8].map(num => (
-                        <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
-                      ))}
-                    </select>
                   </div>
                 </div>
               )}
@@ -456,139 +347,14 @@ const Booking = () => {
               {/* Step 3: Payment */}
               {currentStep === 3 && (
                 <div className="form-step">
-                  <div className="payment-interface">
-                    <div className="payment-container">
-
-                        {/* Main Payment Card */}
-                        <div className="payment-card">
-                          
-                          {/* QR Code Area */}
-                        <div className="qr-section">
-                          <div className="qr-container">
-                            {/* QR Code Card */}
-                            <div className="qr-card">
-                              <div className="qr-wrapper">
-                                <canvas 
-                                  ref={canvasRef}
-                                  className="qr-code"
-                                />
-                              </div>
-                            </div>
-
-                            {/* Action Buttons Below QR */}
-                            <div className="qr-actions">
-                              <button
-                                onClick={handleSaveQR}
-                                disabled={isDownloading}
-                                className="action-button action-button-secondary"
-                              >
-                                <div className="action-icon action-icon-download"></div>
-                                {isDownloading ? 'Saving...' : 'Download'}
-                              </button>
-                              
-                              <button
-                                onClick={handleCopyID}
-                                className="action-button action-button-secondary"
-                              >
-                                <div className="action-icon action-icon-copy"></div>
-                                Copy ID
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Transaction Details Card */}
-                        <div className="transaction-details">
-                          <div className="transaction-card">
-                            
-                            {/* Total Amount */}
-                            <div className="transaction-row">
-                              <span className="transaction-label">Total Amount</span>
-                              <span className="transaction-value">{calculateTotal()} THB</span>
-                            </div>
-
-                            {/* PromptPay ID */}
-                            <div className="transaction-row">
-                              <span className="transaction-label">PromptPay ID</span>
-                              <span className="transaction-value">0066812345678</span>
-                            </div>
-
-                            {/* Transaction Ref */}
-                            <div className="transaction-row">
-                              <span className="transaction-label">Transaction Ref</span>
-                              <span className="transaction-value">BK{Date.now()}</span>
-                            </div>
-
-                            {/* Divider */}
-                            <div className="transaction-divider"></div>
-
-                            {/* Secure Payment */}
-                            <div className="transaction-row">
-                              <div className="transaction-label-with-icon">
-                                <div className="transaction-icon transaction-icon-shield"></div>
-                                <span className="transaction-label">Secure Payment</span>
-                              </div>
-                              <span className="transaction-badge">VERIFIED</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Help Section */}
-                        <div className="help-section">
-                          <div className="help-content">
-                            
-                            {/* Step 1 */}
-                            <div className="help-step">
-                              <div className="help-step-number">1</div>
-                              <div className="help-step-content">
-                                <div className="help-step-title">Open your banking app</div>
-                                <div className="help-step-description">SCB Easy, K PLUS, or any Banking app</div>
-                              </div>
-                            </div>
-
-                            {/* Step 2 */}
-                            <div className="help-step">
-                              <div className="help-step-number">2</div>
-                              <div className="help-step-content">
-                                <div className="help-step-title">Scan QR code</div>
-                                <div className="help-step-description">Use the scan function in your app</div>
-                              </div>
-                            </div>
-
-                            {/* Step 3 */}
-                            <div className="help-step">
-                              <div className="help-step-number">3</div>
-                              <div className="help-step-content">
-                                <div className="help-step-title">Confirm payment</div>
-                                <div className="help-step-description">Check amount and authorize transaction</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                      </div>
-
-                      {/* Trust Badges Footer */}
-                      {/* <div className="trust-badges">
-                        <div className="trust-badge">
-                          <div className="trust-icon trust-icon-shield"></div>
-                          <span className="trust-text">Secure Payment</span>
-                        </div>
-                        <div className="trust-badge">
-                          <div className="trust-icon trust-icon-check"></div>
-                          <span className="trust-text">No Hidden Fees</span>
-                        </div>
-                      </div> */}
-
-                      {/* Copy Success Feedback */}
-                      {isCopied && (
-                        <div className="copy-feedback">
-                          <div className="copy-icon"></div>
-                          Copied!
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <QRPaymentStep 
+                    amount={calculateTotal()}
+                    onPaymentComplete={(paymentData) => {
+                      console.log('Payment completed:', paymentData);
+                    }}
+                    onNext={nextStep}
+                    onPrevious={prevStep}
+                  />
                 </div>
               )}
 
@@ -619,12 +385,12 @@ const Booking = () => {
                       <h3>Payment Summary</h3>
                       <div className="price-breakdown">
                         <div className="price-line">
-                          <span>Room Rate (${selectedRoom?.price}/night)</span>
-                          <span>${calculateTotal()}</span>
+                          <span>Room Rate (฿{selectedRoom?.price}/night)</span>
+                          <span>฿{calculateTotal()}</span>
                         </div>
                         <div className="price-line total">
                           <span><strong>Total Amount</strong></span>
-                          <span><strong>${calculateTotal()}</strong></span>
+                          <span><strong>฿{calculateTotal()}</strong></span>
                         </div>
                       </div>
                     </div>
@@ -655,46 +421,13 @@ const Booking = () => {
                 )}
                 
                 {currentStep < 4 ? (
-                  currentStep === 3 ? (
-                    paymentState === 'awaiting' ? (
-                      <button 
-                        type="button" 
-                        className="btn btn-primary"
-                        onClick={handlePaymentComplete}
-                      >
-                        I've Completed Payment
-                      </button>
-                    ) : paymentState === 'processing' ? (
-                      <div className="processing-button">
-                        <div className="processing-spinner"></div>
-                        Verifying Payment...
-                      </div>
-                    ) : paymentState === 'success' ? (
-                      <button 
-                        type="button" 
-                        className="btn btn-primary"
-                        onClick={nextStep}
-                      >
-                        Next Step
-                      </button>
-                    ) : paymentState === 'expired' ? (
-                      <button 
-                        type="button" 
-                        className="btn btn-secondary"
-                        onClick={() => window.location.reload()}
-                      >
-                        Start New Booking
-                      </button>
-                    ) : null
-                  ) : (
-                    <button 
-                      type="button" 
-                      className="btn btn-primary"
-                      onClick={nextStep}
-                    >
-                      Next Step
-                    </button>
-                  )
+                  <button 
+                    type="button" 
+                    className="btn btn-primary"
+                    onClick={nextStep}
+                  >
+                    Next Step
+                  </button>
                 ) : (
                   <button 
                     type="submit" 
@@ -706,9 +439,10 @@ const Booking = () => {
               </div>
             </form>
           </div>
+          </div>
         </div>
       </div>
-    </div>
+    </PaymentProvider>
   );
 };
 

@@ -5,64 +5,131 @@ import './RoomDetails.css';
 const RoomDetails = () => {
   const { id } = useParams();
   const [room, setRoom] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Auto-slide effect
+  useEffect(() => {
+    if (!room || room.images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        (prevIndex + 1) % room.images.length
+      );
+    }, 10000); // Auto-slide every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [room]);
+
+  // Handle dot click
+  const goToSlide = (index) => {
+    setCurrentImageIndex(index);
+  };
 
   // Sample room data
   const rooms = [
     {
       id: 1,
-      name: "Deluxe Double",
+      name: "Standard King Bed Room",
       type: "Private",
-      price: 65,
+      price: 531,
+      size: "15m²",
       capacity: 2,
-      amenities: ["WiFi", "Air Conditioning", "Private Bathroom", "Balcony", "TV", "Mini Refrigerator"],
-      image: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop",
-      description: "The Deluxe Double room offers premium comfort for couples, featuring a queen-size bed, private balcony, and modern amenities. Perfect for romantic getaways or business travelers seeking extra comfort.",
+      amenities: ["เครื่องปรับอากาศ", "ปลั๊กใกล้เตียง", "พื้นกระเบื้อง/หินอ่อน", "โต๊ะทำงาน", "มุ้ง", "พัดลม", "เครื่องอบผ้า", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "ราวแขวนเสื้อผ้า"],
+      images: [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o="
+      ],
+      description: "Comfortable private room with king-size bed, air conditioning, and shared bathroom facilities. Located on upper floor with stair access only.",
       available: true,
-      detailedDescription: "The Deluxe Double room offers premium comfort for couples, featuring a queen-size bed, private balcony, and modern amenities. Perfect for romantic getaways or business travelers seeking extra comfort.",
+      detailedDescription: "This spacious private room features a comfortable king-size bed, air conditioning for your comfort, and access to shared bathroom facilities. The room is located on the upper floor and is accessible by stairs only. Perfect for couples or solo travelers seeking privacy and comfort.",
       features: [
-        "Queen-size bed",
-        "Private bathroom with bathtub",
-        "Private balcony",
-        "Mini refrigerator",
-        "Flat-screen TV",
-        "Free WiFi",
-        "Air conditioning",
-        "Room service available"
+        "เตียงคิงไซส์",
+        "เครื่องปรับอากาศ",
+        "ปลั๊กใกล้เตียง",
+        "พื้นกระเบื้อง/หินอ่อน",
+        "โต๊ะทำงาน",
+        "มุ้ง",
+        "พัดลม",
+        "เครื่องอบผ้า",
+        "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น",
+        "ราวแขวนเสื้อผ้า"
       ],
       policies: [
         "Check-in: 2:00 PM - 10:00 PM",
         "Check-out: 11:00 AM",
         "No smoking in rooms",
-        "Room service until 10:00 PM",
-        "No pets allowed"
+        "Shared bathroom facilities",
+        "Upper floor access via stairs only"
       ]
     },
     {
       id: 2,
-      name: "Private Single",
-      type: "Private",
-      price: 45,
-      capacity: 1,
-      amenities: ["WiFi", "Air Conditioning", "Private Bathroom", "Desk", "TV"],
-      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Black.png/250px-Black.png",
-      description: "The Private Single room provides complete privacy and comfort for solo travelers. Features a comfortable single bed, private bathroom, and workspace. Perfect for business travelers or those seeking a quiet retreat.",
+      name: "Female Dormitory 4-Bed",
+      type: "Dormitory",
+      price: 216,
+      size: "15m²",
+      capacity: 4,
+      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
+      images: [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276533.jpg?k=652f3d9b297cabc399e4e20bbf879430eb3d294fc5c544ff8bdf0090cbbf2798&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276515.jpg?k=3590856db47369f89cfbc6db704014d220cc68e937be7383fb5af7d440890e87&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o="
+      ],
+      description: "Comfortable female-only dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
       available: true,
-      detailedDescription: "The Private Single room provides complete privacy and comfort for solo travelers. Features a comfortable single bed, private bathroom, and workspace. Perfect for business travelers or those seeking a quiet retreat.",
+      detailedDescription: "This female-only dormitory offers a safe and comfortable environment for female travelers. The room features 4 comfortable beds, air conditioning, and access to shared bathroom facilities. Perfect for solo female travelers or groups of female friends.",
       features: [
-        "Comfortable single bed",
-        "Private bathroom with shower",
-        "Work desk and chair",
-        "Flat-screen TV",
-        "Free WiFi",
-        "Air conditioning",
-        "Room service available"
+        "4 เตียงในเตียงสองชั้น",
+        "ชุดผ้าสำหรับห้องพัก",
+        "พัดลม",
+        "เครื่องอบผ้า",
+        "พื้นกระเบื้อง/หินอ่อน",
+        "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น",
+        "มุ้ง",
+        "ปลั๊กใกล้เตียง",
+        "เครื่องปรับอากาศ",
+        "ห้องพักสำหรับผู้หญิงเท่านั้น"
       ],
       policies: [
         "Check-in: 2:00 PM - 10:00 PM",
         "Check-out: 11:00 AM",
-        "No smoking in rooms",
-        "Room service until 10:00 PM",
-        "No pets allowed"
+        "Female-only accommodation",
+        "Shared bathroom facilities",
+        "Bedding included"
+      ]
+    },
+    {
+      id: 3,
+      name: "Mixed Dormitory 4-Bed",
+      type: "Dormitory",
+      price: 216,
+      size: "15m²",
+      capacity: 4,
+      amenities: ["ชุดผ้าสำหรับห้องพัก", "พัดลม", "เครื่องอบผ้า", "พื้นกระเบื้อง/หินอ่อน", "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น", "มุ้ง", "ปลั๊กใกล้เตียง", "เครื่องปรับอากาศ"],
+      images: [
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276494.jpg?k=fa258523250cc272021978eca8489404a422b425991d2aee3e3cd5bcd2fb71ac&o=",
+        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/274276200.jpg?k=23e9769ddc55635cebd1c6b315734f46f9fe6e73c2bdf145e162b10659171f51&o="
+      ],
+      description: "Comfortable mixed dormitory with 4 beds, air conditioning, and shared bathroom facilities.",
+      available: true,
+      detailedDescription: "This mixed dormitory welcomes travelers of all genders. The room features 4 comfortable beds, air conditioning, and access to shared bathroom facilities. Perfect for budget-conscious travelers who enjoy meeting new people.",
+      features: [
+        "4 เตียงในเตียงสองชั้น",
+        "ชุดผ้าสำหรับห้องพัก",
+        "พัดลม",
+        "เครื่องอบผ้า",
+        "พื้นกระเบื้อง/หินอ่อน",
+        "ห้องพักอยู่ชั้นบน เข้าถึงได้ด้วยบันไดเท่านั้น",
+        "มุ้ง",
+        "ปลั๊กใกล้เตียง",
+        "เครื่องปรับอากาศ",
+        "ห้องพักสำหรับทุกเพศ"
+      ],
+      policies: [
+        "Check-in: 2:00 PM - 10:00 PM",
+        "Check-out: 11:00 AM",
+        "Mixed gender accommodation",
+        "Shared bathroom facilities",
+        "Bedding included"
       ]
     }
   ];
@@ -99,9 +166,38 @@ const RoomDetails = () => {
           <span>{room.name}</span>
         </nav>
 
-        {/* Room Header - Full Width Image */}
+        {/* Room Header - Full Width Image Slideshow */}
         <div className="room-image-full">
-          <img src={room.image} alt={room.name} />
+          <div className="slideshow-container">
+            <div 
+              className="slideshow-wrapper"
+              style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+            >
+              {room.images.map((image, index) => (
+                <img 
+                  key={index}
+                  src={image} 
+                  alt={`${room.name} - Image ${index + 1}`}
+                  className={`slide ${index === currentImageIndex ? 'active' : ''}`}
+                />
+              ))}
+            </div>
+            
+            {/* Dot Indicators */}
+            {room.images.length > 1 && (
+              <div className="slideshow-dots">
+                {room.images.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`dot ${index === currentImageIndex ? 'active' : ''}`}
+                    onClick={() => goToSlide(index)}
+                    aria-label={`Go to image ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          
           <div className="room-badge">
             <span className={`badge ${room.type.toLowerCase()}`}>{room.type}</span>
             {!room.available && <span className="badge unavailable">Unavailable</span>}
@@ -111,7 +207,7 @@ const RoomDetails = () => {
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2" fill="none"/>
               <path d="M8 10h8M8 14h6" stroke="currentColor" strokeWidth="2"/>
             </svg>
-            <span>Gallery</span>
+            <span>Gallery ({room.images.length})</span>
           </div>
         </div>
 
@@ -132,7 +228,7 @@ const RoomDetails = () => {
                   </div>
                   <div className="meta-content">
                     <span className="meta-label">Price</span>
-                    <span className="meta-value">${room.price}/night</span>
+                    <span className="meta-value">฿{room.price}/night</span>
                   </div>
                 </div>
                 <div className="meta-item">
@@ -287,7 +383,7 @@ const RoomDetails = () => {
               <div className="booking-header">
                 <h3>Book This Room</h3>
                 <div className="price-display">
-                  <span className="price-amount">${room.price}</span>
+                  <span className="price-amount">฿{room.price}</span>
                   <span className="price-period">/night</span>
                 </div>
               </div>
